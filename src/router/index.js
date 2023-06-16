@@ -75,7 +75,7 @@ export const constantRoutes = [{
                 name: 'dic',
                 component: () =>
                     import ('@/views/table/dic/index'),
-                meta: { title: '字典管理', icon: 'el-icon-user-solid' }
+                meta: { title: '字典管理', icon: 'el-icon-s-management' }
             },
             // {
             //     path: 'usermanage',
@@ -96,13 +96,24 @@ export const constantRoutes = [{
     {
         path: '/shop',
         component: Layout,
+        redirect: '/example/table',
+        name: 'Shop',
+        meta: { title: '商店管理', icon: 'el-icon-s-home' },
         children: [{
             path: 'index',
             name: 'Shop',
             component: () =>
                 import ('@/views/shop/index'),
-            meta: { title: '商店管理', icon: 'el-icon-s-goods' }
-        }]
+            meta: { title: '商店信息', icon: 'el-icon-s-shop' }
+            
+        },
+        {
+            path: '/detailShop',
+            name: 'detailShop',
+            component: () =>
+                import ('@/views/shop/detailShop'),
+            meta: { title: '商品详情', icon: 'el-icon-s-goods' }
+        },]
     },
     {
         path: '/orders',

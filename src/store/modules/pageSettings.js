@@ -2,6 +2,7 @@
 const state = {
   dictName:"",
   dictId:"",
+  curShop:"",
 }
 
 const mutations = {

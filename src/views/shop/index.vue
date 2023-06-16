@@ -99,9 +99,9 @@
           {{ scope.$index }}
         </template>
       </el-table-column>
-      <el-table-column label="店名" width="150" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.name }}</span>
+      <el-table-column label="店名" width="150" align="center" >
+        <template slot-scope="scope" >
+          <span >{{ scope.row.name }}</span>
         </template>
       </el-table-column>
       <el-table-column label="店铺图片" align="center">
@@ -141,7 +141,7 @@
       <el-table-column
         class-name="status-col"
         label="useful"
-        width="110"
+        width="90"
         align="center"
       >
         <template slot-scope="scope">
@@ -153,8 +153,14 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="130px" align="center" fixed="right">
+      <el-table-column label="操作" width="200px" align="center" fixed="right">
         <template slot-scope="scope">
+          <el-button
+            type="success"
+            icon="el-icon-s-home"
+            size="mini"
+            @click="getDetail(scope.row.id)"
+          />
           <el-button
             type="primary"
             icon="el-icon-edit"
@@ -180,6 +186,7 @@
 import { getList } from "@/api/table";
 import Pagination from '@/components/Pagination/index.vue'
 import { uploadShop } from "@/api/apis/picUrl";
+import { mapMutations } from 'vuex'
 import {
   getShopList,
   getShopPage,
@@ -203,6 +210,7 @@ export default {
       return statusMap[status];
     },
   },
+  
   data() {
     return {
       loadNum:0,
@@ -277,6 +285,10 @@ export default {
     this.getShop();
   },
   methods: {
+    ...mapMutations("pageSettings",["CHANGE_SETTING"]),
+    getDetail(id){
+      this.$router.push({ name:"detailShop",params:{ "shopId":id }})
+    },
     //用户名搜索
     search(){
       let self = this
