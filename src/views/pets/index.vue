@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container" >
     <!--表单组件-->
     <el-dialog
       append-to-body
@@ -16,42 +16,63 @@
         >
           <el-input v-model="form.name" style="width: 370px" />
         </el-form-item>
-
+        <el-form-item label="类型" prop="type" :rules="[{ required: true, message: '请选择类型', trigger: 'blur' }]">
+          <el-input v-model="form.type" style="width: 370px" />
+        </el-form-item>
+        <el-form-item label="价格" prop="price" :rules="[{ required: true, message: '请输入价格', trigger: 'blur' }]">
+          <el-input v-model="form.price"  style="width: 370px" />
+        </el-form-item>
         <el-form-item
-          label="昵称"
-          prop="nickname"
-          :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]"
+        label="照片"
+        prop="urlList"
         >
-          <el-input v-model="form.nickname" style="width: 370px" />
+        <el-upload
+            class="upload-demo"
+            ref="upload"
+            action="#"
+            :on-change="handleChange"
+            :http-request="uploadFile"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :file-list="fileList"
+            list-type="picture"
+            :limit="5"
+            :on-success="handleSuccess"
+            :on-exceed="handleExceed"
+            :auto-upload="false">
+            <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+            <div slot="tip" class="el-upload__tip">不选择上传就不更新头像</div>
+          </el-upload>
         </el-form-item>
 
-        <el-form-item
-          v-if="dialogTitle == 'create'"
-          label="密码"
-          prop="password"
-          :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]"
-        >
-          <el-input v-model="form.password" style="width: 370px" />
+        
+        <el-form-item label="介绍">
+          <el-input v-model="form.description" style="width: 370px" />
         </el-form-item>
-
-        <el-form-item v-else label="密码">
-          <el-input
-            v-model="form.password"
-            placeholder="不填不修改密码"
-            style="width: 370px"
-          />
+      
+        <el-form-item label="所属商店">
+          <el-select v-model="form.shopId" placeholder="请选择">
+            <el-option
+              v-for="item in shopMsg"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id">
+            </el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="头像">
-          <el-input v-model="form.avatar" style="width: 370px" />
+        
+        <el-form-item label="性别" >
+          <el-select v-model="form.sex" placeholder="请选择">
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="联系电话">
-          <el-input v-model="form.tele" style="width: 370px" />
-        </el-form-item>
-        <el-form-item label="邮箱">
-          <el-input v-model="form.email" style="width: 370px" />
-        </el-form-item>
-        <el-form-item label="性别">
-          <el-input v-model="form.sex" style="width: 370px" />
+        <el-form-item label="年龄">
+          <el-input v-model="form.age" style="width: 370px" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -103,9 +124,22 @@
           {{ scope.$index }}
         </template>
       </el-table-column>
-      <el-table-column label="姓名" width="150" align="center">
+      <el-table-column label="姓名" width="100" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.name }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="照片" align="center">
+        <template slot-scope="scope">
+          <el-image v-if="loadComplete"
+            class="table-td-thumb"
+            :src="scope.row.urlList[0]"
+            :preview-src-list="scope.row.urlList"
+          />
+          <el-image v-else
+            class="table-td-thumb"
+            :src="url"
+          />
         </template>
       </el-table-column>
       <el-table-column label="介绍" width="300" align="center">
@@ -113,9 +147,14 @@
           <span>{{ scope.row.description }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="类型" width="300" align="center">
+      <el-table-column label="类型" width="100" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.type }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="所属商店" width="150" align="center">
+        <template slot-scope="scope">
+          <span>{{ getShopName(scope.row.shopId) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="价格" align="center">
@@ -174,6 +213,8 @@
 <script>
 import { getList } from "@/api/table";
 import Pagination from '@/components/Pagination/index.vue'
+import { getShopList } from "@/api/apis/shop";
+import { getPictureList,addPicture,uploadPet} from "@/api/apis/picUrl";
 import {
   getPetList,
   getPetPage,
@@ -182,6 +223,7 @@ import {
   addPet,
   updatePet,
 } from "@/api/apis/pets";
+import { smart } from "@babel/template";
 export default {
   components: {
       Pagination,
@@ -199,7 +241,25 @@ export default {
   },
   data() {
     return {
+      options: [{
+          value: '公',
+          label: '公'
+        }, {
+          value: '母',
+          label: '母'
+        }],
+      value:"",
+      addPetId:"",
+      addPic:false,
+      loadNum:0,
+      addNum:0,
+      url:"https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg",
+      loadComplete:false,
+      shopMsg:[],
       imageUrl:"",
+      srcList:[],
+      formData: '',
+      fileList:[],
       reflash: false,
       dialogFormVisible: false,
       isRouterAlive: true,
@@ -213,11 +273,15 @@ export default {
       },
       form: {
         name: "",
-        address: "",
-        tele: "",
-        desc: "",
-        longitude: "",
-        latitude: "",
+        urlList:[],
+        description:"",
+        type:"",
+        price:"",
+        shopId:"",
+        sex:"",
+        age:"",
+        useful:"",
+        avatar:""
       },
       query: {
         address: "",
@@ -256,19 +320,61 @@ export default {
             } else {
               self.list[i].useful = false;
             }
+            self.getPetUrl(self.list[i].id,i)
           }
           self.reload();
           self.reflash = false;
         })
         .catch(function (error) {});
     },
+    addNum: function (newData, oldData) {
+      if(this.addNum == this.list.length)
+        this.loadComplete = true
+    }
   },
   created() {
     this.fetchData();
     this.getPet();
+    this.getShop()
   },
   methods: {
-    //用户名搜索
+    //获取图片
+    getPetUrl(id,pos){
+      let self = this
+      var url= []
+      getPictureList({
+        "value":"belong_id",
+        "name":id
+      }).then(res => {
+        for(var i=0;i<res.data.length;i++)
+          url.push(self.PIC.pictureurl+res.data[i].url)
+        self.$set(self.list[pos],"urlList",url)
+        self.addNum++
+      }).catch(err => {
+
+      })
+    },
+    //获取商店名
+    getShopName(id){
+      for(var i = 0;i< this.shopMsg.length ;i++){
+        if(id == this.shopMsg[i].id)
+          return this.shopMsg[i].name
+      }
+    },
+    //获取商店数据表
+    getShop(){
+      let self = this
+        getShopList({
+            "value":"id",
+            "name":""
+        }).then(function(res){
+          self.shopMsg = res.data
+        }).catch(function(error){
+          console.log(error)
+        })
+        
+    },
+    //宠物名搜索
     search(){
       let self = this
       getPetPage({
@@ -278,20 +384,20 @@ export default {
             "name":self.query.name
         })
         .then(function(res){
-          console.log(res)
           self.list = res.data.records
           self.total = res.data.total
-                for(var i=0;i<self.list.length;i++){
-                    if(self.list[i].useful == 1)
-                        self.list[i].useful = true
-                    else
-                        self.list[i].useful =false
-                }
+            for(var i=0;i<self.list.length;i++){
+                if(self.list[i].useful == 1)
+                    self.list[i].useful = true
+                else
+                    self.list[i].useful =false
+                self.getPetUrl(self.list[i].id,i)
+            }
             self.reload()
         }).catch(function(error){
         })
     },
-    //获取用户数据表
+    //获取宠物数据表
     getPet(){
       let self = this
         getPetPage({
@@ -301,15 +407,15 @@ export default {
             "name":self.getPetForm.name
         })
         .then(function(res){
-          console.log(res)
           self.list = res.data.records
           self.total = res.data.total
-                for(var i=0;i<self.list.length;i++){
-                    if(self.list[i].useful == 1)
-                        self.list[i].useful = true
-                    else
-                        self.list[i].useful =false
-                }
+              for(var i=0;i<self.list.length;i++){
+                  if(self.list[i].useful == 1)
+                      self.list[i].useful = true
+                  else
+                      self.list[i].useful =false
+                  self.getPetUrl(self.list[i].id,i)
+              }
             self.reload()
         }).catch(function(error){
         })
@@ -409,6 +515,7 @@ export default {
     },
     // 处理新增
     handleCreate() {
+      console.log("create")
       this.dialogTitle = "create";
       this.dialogFormVisible = true;
       this.form = Object.assign({});
@@ -418,80 +525,229 @@ export default {
       this.dialogTitle = "Edit";
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row); // copy obj
-      this.form.password = "";
     },
     // 确认新增
-    createData() {
-      this.dialogFormVisible = false;
+    createData(){
       const self = this;
-      addPet(self.form)
-        .then(function (res) {
-          if (res.statusCode == 200) {
-            self.reflash = true;
-            self.$message({
-              type: "info",
-              message: "添加成功",
-            });
-          } else {
-            self.$message({
-              type: "info",
-              message: "添加失败,表单填写不完整",
-            });
-          }
-        })
-        .catch(function (error) {});
+      this.dialogFormVisible = false;
+      if(this.loadNum != 0)
+          this.submitUpload()
+      else{
+        addPet(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) 
+                {
+                  console.log(res)
+                  self.reflash = true;
+                  self.$message({
+                    type: "info",
+                    message: "添加成功",
+                  });
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "添加失败,表单填写不完整",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
     },
     // 确认修改
     updateData() {
+      const self = this;
       this.dialogFormVisible = false;
       if (this.form.useful == true) {
         this.form.useful = 1;
       } else {
         this.form.useful = 0;
       }
-      const self = this;
-      updatePet(self.form)
-        .then(function (res) {
-          if (res.statusCode == 200) {
-            self.reflash = true;
-            self.$message({
-              type: "info",
-              message: "修改成功",
-            });
-          } else {
-            self.$message({
-              type: "info",
-              message: "更改失败,未修改数据",
-            });
-          }
-        })
-        .catch(function (error) {});
+      if(this.loadNum != 0)
+        this.submitUpload()
+      else{
+        updatePet(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) {
+                  self.reflash = true;
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "修改成功",
+                  });
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "更改失败,未修改数据",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
+
     },
+    uploadFile(file) {
+	        this.formData.append('file', file.file);
+	  },
+    submitUpload() {
+      const self = this
+        console.log("upload")
+	        this.formData = new FormData()
+          this.$refs.upload.submit();
+          uploadPet(this.formData).then(response => {
+              console.log(response)
+              var pList = response.data
+              if(self.dialogTitle == 'create')
+              {
+                addPet(self.form)
+                .then(function (res) {
+                  console.log()
+                  if (res.statusCode == 200) 
+                  {
+                    getPetList({
+                      "value":"name",
+                      "name":self.form.name
+                    }).then(res => {
+                      self.addPetId = res.data[0].id
+                      for(var k = 0;k<pList.length;k++){
+                          addPicture({
+                            "belongId":res.data[0].id,
+                            "url":"pet/"+pList[k]
+                          }).then(res => {
+                          }).catch(err => {})
+                          self.$message({
+                            type: "info",
+                            message: "添加成功",
+                          });
+                      }
+                    }).catch(err => {})
+                    self.reflash = true;
+                    self.$refs.upload.clearFiles();
+                  } else {
+                    self.$refs.upload.clearFiles();
+                    self.$message({
+                      type: "info",
+                      message: "添加失败,表单填写不完整",
+                    });
+                  }
+                })
+                .catch(function (error) {});
+              }else if(self.dialogTitle == 'edit'){
+                updatePet(self.form)
+                .then(function (res) {
+                  if (res.statusCode == 200) {
+                    self.reflash = true;
+                    self.$refs.upload.clearFiles();
+                    self.$message({
+                      type: "info",
+                      message: "修改成功",
+                    });
+                  } else {
+                    self.$refs.upload.clearFiles();
+                    self.$message({
+                      type: "info",
+                      message: "更改失败,未修改数据",
+                    });
+                  }
+                })
+                .catch(function (error) {});
+              }
+          }).catch(err => {
+              console.log(err)
+          })
+	      	this.$refs.upload.clearFiles();
+	    },
     //上传图片函数
     // uploadImage(param){
-    //     let self = this
+    //     const self = this;
+    //     console.log("upload")
     //     const formData = new FormData()
     //     formData.append('file', param.file)
-    //     uploadAvatar(formData)
-    //     .then(response => {
-    //        self.form.avatar = response.data
-    //         console.log(response)
+    //     uploadPet(formData).then(response => {
+    //         var url = "pet/"+response.data
+    //         if(self.dialogTitle == 'create')
+    //         {
+    //           addPet(self.form)
+    //           .then(function (res) {
+    //             if (res.statusCode == 200) 
+    //             {
+    //               getPetList({
+    //                 "value":"name",
+    //                 "name":self.form.name
+    //               }).then(res => {
+    //                 self.addPetId = res.data[0].id
+    //                 console.log(self.addPetId)
+    //                 addPicture({
+    //                   "belongId":res.data[0].id,
+    //                   "url":url
+    //                 }).then(res => {
+    //                 }).catch(err => {})
+    //                 self.$message({
+    //                   type: "info",
+    //                   message: "添加成功",
+    //                 });
+    //               }).catch(err => {})
+    //               self.reflash = true;
+    //               self.$refs.upload.clearFiles();
+    //             } else {
+    //               self.$refs.upload.clearFiles();
+    //               self.$message({
+    //                 type: "info",
+    //                 message: "添加失败,表单填写不完整",
+    //               });
+    //             }
+    //           })
+    //           .catch(function (error) {});
+    //         }else if(self.dialogTitle == 'edit'){
+    //           updatePet(self.form)
+    //           .then(function (res) {
+    //             if (res.statusCode == 200) {
+    //               self.reflash = true;
+    //               self.$refs.upload.clearFiles();
+    //               self.$message({
+    //                 type: "info",
+    //                 message: "修改成功",
+    //               });
+    //             } else {
+    //               self.$refs.upload.clearFiles();
+    //               self.$message({
+    //                 type: "info",
+    //                 message: "更改失败,未修改数据",
+    //               });
+    //             }
+    //           })
+    //           .catch(function (error) {});
+    //         }else{
+    //           addPicture({
+    //             "belongId":self.addPetId,
+    //             "url":url
+    //           }).then(res => {
+    //             console.log("addddddd")
+    //           }).catch(err => {})
+    //         }
     //     }).catch(response => {
+    //         console.log('图片上传失败')
     //   })
     // },
-    // //传图片校验
-    // beforeAvatarUpload(file) {
-    //   // const isJPG = file.type === 'image/jpeg';
-    //   const isLt2M = file.size / 1024 / 1024 < 2;
-
-    //   // if (!isJPG) {
-    //   //   this.$message.error('上传头像图片只能是 JPG 格式!');
-    //   // }
-    //   if (!isLt2M) {
-    //     this.$message.error('上传头像图片大小不能超过 2MB!');
-    //   }
-    //   return  isLt2M;
-    // },
+    handleRemove(file, fileList) {
+      console.log(file, fileList);
+    },
+    handlePreview(file) {
+      console.log(file);
+    },
+    handleExceed(files, fileList) {
+      console.log(files)
+      this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length } 个文件`);
+    },
+    handleChange(){
+        this.loadNum++
+    },
     //其他
     get() {},
     fetchData() {

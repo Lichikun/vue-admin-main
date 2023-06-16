@@ -51,6 +51,7 @@
             :on-remove="handleRemove"
             :file-list="fileList"
             :limit="1"
+            :on-change="handleChange"
             :on-exceed="handleExceed"
             :auto-upload="false">
             <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
@@ -261,7 +262,8 @@ export default {
           title: undefined,
           type: undefined,
           sort: '+id'
-        },
+      },
+      loadNum:0,
     };
   },
   watch: {
@@ -455,20 +457,69 @@ export default {
     },
     // 确认新增
     createData(){
-      this.dialogFormVisible = false;
       const self = this;
-      this.$refs.upload.submit();
+      this.dialogFormVisible = false;
+      if(this.loadNum != 0)
+        this.$refs.upload.submit();
+      else{
+        addUser(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) 
+                {
+                  console.log(res)
+                  self.reflash = true;
+                  self.$message({
+                    type: "info",
+                    message: "添加成功",
+                  });
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "添加失败,表单填写不完整",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
     },
     // 确认修改
     updateData() {
+      const self = this;
       this.dialogFormVisible = false;
       if (this.form.useful == true) {
         this.form.useful = 1;
       } else {
         this.form.useful = 0;
       }
-      const self = this;
-      this.$refs.upload.submit();
+      if(this.loadNum != 0)
+        this.$refs.upload.submit();
+      else{
+        updateUser(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) {
+                  self.reflash = true;
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "修改成功",
+                  });
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "更改失败,未修改数据",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
+
     },
     //上传图片函数
     uploadImage(param){
@@ -534,6 +585,9 @@ export default {
     handleExceed(files, fileList) {
       console.log(files)
       this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length } 个文件`);
+    },
+    handleChange(){
+        this.loadNum++
     },
     get() {},
     fetchData() {

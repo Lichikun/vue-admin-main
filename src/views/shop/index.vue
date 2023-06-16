@@ -10,48 +10,44 @@
     >
       <el-form ref="form" :model="form" size="small" label-width="80px">
         <el-form-item
-          label="姓名"
+          label="店名"
           :rules="[{ required: true, message: '请输入姓名', trigger: 'blur' }]"
           prop="name"
         >
           <el-input v-model="form.name" style="width: 370px" />
         </el-form-item>
 
-        <el-form-item
-          label="昵称"
-          prop="nickname"
-          :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]"
-        >
-          <el-input v-model="form.nickname" style="width: 370px" />
-        </el-form-item>
-
-        <el-form-item
-          v-if="dialogTitle == 'create'"
-          label="密码"
-          prop="password"
-          :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]"
-        >
-          <el-input v-model="form.password" style="width: 370px" />
-        </el-form-item>
-
-        <el-form-item v-else label="密码">
-          <el-input
-            v-model="form.password"
-            placeholder="不填不修改密码"
-            style="width: 370px"
-          />
-        </el-form-item>
-        <el-form-item label="头像">
-          <el-input v-model="form.avatar" style="width: 370px" />
+        <el-form-item label="店铺图片">
+          <el-upload
+            class="upload-userAvatar"
+            ref="upload"
+            action="#"
+            :http-request="uploadImage"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :file-list="fileList"
+            :limit="1"
+            :on-change="handleChange"
+            :on-exceed="handleExceed"
+            :auto-upload="false">
+            <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+            <div slot="tip" class="el-upload__tip">不选择上传就不更新头像</div>
+          </el-upload>
         </el-form-item>
         <el-form-item label="联系电话">
           <el-input v-model="form.tele" style="width: 370px" />
         </el-form-item>
-        <el-form-item label="邮箱">
-          <el-input v-model="form.email" style="width: 370px" />
+        <el-form-item label="地址">
+          <el-input v-model="form.address" style="width: 370px" />
         </el-form-item>
-        <el-form-item label="性别">
-          <el-input v-model="form.sex" style="width: 370px" />
+        <el-form-item label="介绍">
+          <el-input v-model="form.description" style="width: 370px" />
+        </el-form-item>
+        <el-form-item label="纬度">
+          <el-input v-model="form.latitude" style="width: 370px" />
+        </el-form-item>
+        <el-form-item label="经度">
+          <el-input v-model="form.longitude" style="width: 370px" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -103,9 +99,18 @@
           {{ scope.$index }}
         </template>
       </el-table-column>
-      <el-table-column label="店面" width="150" align="center">
+      <el-table-column label="店名" width="150" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.name }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="店铺图片" align="center">
+        <template slot-scope="scope">
+          <el-image
+            class="table-td-thumb"
+            :src="`${PIC.pictureurl}${scope.row.picture}`"
+            :preview-src-list="[`${PIC.pictureurl}${scope.row.picture}`]"
+          />
         </template>
       </el-table-column>
       <el-table-column label="地址" width="300" align="center">
@@ -174,7 +179,7 @@
 <script>
 import { getList } from "@/api/table";
 import Pagination from '@/components/Pagination/index.vue'
-import { uploadAvatar } from "@/api/apis/picUrl";
+import { uploadShop } from "@/api/apis/picUrl";
 import {
   getShopList,
   getShopPage,
@@ -200,6 +205,7 @@ export default {
   },
   data() {
     return {
+      loadNum:0,
       imageUrl:"",
       reflash: false,
       dialogFormVisible: false,
@@ -207,6 +213,7 @@ export default {
       dialogTitle: "",
       total: 10,
       delList: [],
+      fileList:[],
       multipleSelection: [],
       getShopForm: {
         value: "id",
@@ -216,6 +223,7 @@ export default {
         name: "",
         address: "",
         tele: "",
+        picture:"",
         desc: "",
         longitude: "",
         latitude: "",
@@ -419,70 +427,141 @@ export default {
       this.dialogTitle = "Edit";
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row); // copy obj
-      this.form.password = "";
     },
     // 确认新增
-    createData() {
-      this.dialogFormVisible = false;
+    createData(){
       const self = this;
-      addShop(self.form)
-        .then(function (res) {
-          if (res.statusCode == 200) {
-            self.reflash = true;
-            self.$message({
-              type: "info",
-              message: "添加成功",
-            });
-          } else {
-            self.$message({
-              type: "info",
-              message: "添加失败,表单填写不完整",
-            });
-          }
-        })
-        .catch(function (error) {});
+      this.dialogFormVisible = false;
+      if(this.loadNum != 0)
+        this.$refs.upload.submit();
+      else{
+        addShop(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) 
+                {
+                  console.log(res)
+                  self.reflash = true;
+                  self.$message({
+                    type: "info",
+                    message: "添加成功",
+                  });
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "添加失败,表单填写不完整",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
     },
     // 确认修改
     updateData() {
+      const self = this;
       this.dialogFormVisible = false;
       if (this.form.useful == true) {
         this.form.useful = 1;
       } else {
         this.form.useful = 0;
       }
-      const self = this;
-      updateShop(self.form)
-        .then(function (res) {
-          if (res.statusCode == 200) {
-            self.reflash = true;
-            self.$message({
-              type: "info",
-              message: "修改成功",
-            });
-          } else {
-            self.$message({
-              type: "info",
-              message: "更改失败,未修改数据",
-            });
-          }
-        })
-        .catch(function (error) {});
-    },
-    
-    // //传图片校验
-    // beforeAvatarUpload(file) {
-    //   // const isJPG = file.type === 'image/jpeg';
-    //   const isLt2M = file.size / 1024 / 1024 < 2;
+      if(this.loadNum != 0)
+        this.$refs.upload.submit();
+      else{
+        updateShop(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) {
+                  self.reflash = true;
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "修改成功",
+                  });
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "更改失败,未修改数据",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
 
-    //   // if (!isJPG) {
-    //   //   this.$message.error('上传头像图片只能是 JPG 格式!');
-    //   // }
-    //   if (!isLt2M) {
-    //     this.$message.error('上传头像图片大小不能超过 2MB!');
-    //   }
-    //   return  isLt2M;
-    // },
-    //其他
+    },
+    //上传图片函数
+    uploadImage(param){
+        const self = this;
+        console.log("upload")
+        const formData = new FormData()
+        formData.append('file', param.file)
+        uploadShop(formData).then(response => {
+            if(self.dialogTitle == 'create')
+            {
+              addShop(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) 
+                {
+                  console.log(res)
+                  self.reflash = true;
+                  self.$message({
+                    type: "info",
+                    message: "添加成功",
+                  });
+                  self.$refs.upload.clearFiles();
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.$message({
+                    type: "info",
+                    message: "添加失败,表单填写不完整",
+                  });
+                }
+              })
+              .catch(function (error) {});
+            }else{
+              updateShop(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) {
+                  self.reflash = true;
+                  self.$refs.upload.clearFiles();
+                  self.$message({
+                    type: "info",
+                    message: "修改成功",
+                  });
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.$message({
+                    type: "info",
+                    message: "更改失败,未修改数据",
+                  });
+                }
+              })
+              .catch(function (error) {});
+            }
+            console.log(response)
+            self.form.picture = "shop/"+response.data
+        }).catch(response => {
+            console.log('图片上传失败')
+      })
+    },
+    handleRemove(file, fileList) {
+      console.log(file, fileList);
+    },
+    handlePreview(file) {
+      console.log(file);
+    },
+    handleExceed(files, fileList) {
+      console.log(files)
+      this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length } 个文件`);
+    },
+    handleChange(){
+        this.loadNum++
+    },
     get() {},
     fetchData() {
       this.listLoading = true;

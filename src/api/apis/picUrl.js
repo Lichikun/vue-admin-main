@@ -52,6 +52,11 @@ export function uploadPet(params){
 	return postImg("/picture/uploadPet",params)
 }
 
+// 上传shopp接口
+export function uploadShop(params){
+	return postImg("/picture/uploadShop",params)
+}
+
 export default{
 	pictureurl,
 }
