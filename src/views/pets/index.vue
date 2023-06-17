@@ -37,7 +37,6 @@
             :file-list="fileList"
             list-type="picture"
             :limit="5"
-            :on-success="handleSuccess"
             :on-exceed="handleExceed"
             :auto-upload="false">
             <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
@@ -86,8 +85,9 @@
         >
       </div>
     </el-dialog>
-
+    
     <div class="handle-box">
+      <button @click="get()">++</button>
         <el-input v-model="query.name" placeholder="用户名" class="handle-input mr10"></el-input>
         <el-button type="primary" icon="el-icon-search" @click="search()">搜索</el-button>
         <el-button
@@ -330,7 +330,16 @@ export default {
     addNum: function (newData, oldData) {
       if(this.addNum == this.list.length)
         this.loadComplete = true
-    }
+    },
+    listQuery: {
+      handler () { //这是vue的规定写法，当你watch的值发生变化的时候，就会触发这个handler，这是vue内部帮你做的事情
+        this.loadComplete = false
+        this.addNum = 0
+        this.getPet()
+      },
+      deep: true,  // 可以深度检测到 obj 对象的属性值的变化
+      immediate: true //刷新加载  立马触发一次handler
+    },
   },
   created() {
     this.fetchData();
@@ -618,7 +627,8 @@ export default {
                       for(var k = 0;k<pList.length;k++){
                           addPicture({
                             "belongId":res.data[0].id,
-                            "url":"pet/"+pList[k]
+                            "url":"pet/"+pList[k],
+                            "state":k
                           }).then(res => {
                           }).catch(err => {})
                           self.$message({
@@ -662,79 +672,7 @@ export default {
               console.log(err)
           })
 	      	this.$refs.upload.clearFiles();
-	    },
-    //上传图片函数
-    // uploadImage(param){
-    //     const self = this;
-    //     console.log("upload")
-    //     const formData = new FormData()
-    //     formData.append('file', param.file)
-    //     uploadPet(formData).then(response => {
-    //         var url = "pet/"+response.data
-    //         if(self.dialogTitle == 'create')
-    //         {
-    //           addPet(self.form)
-    //           .then(function (res) {
-    //             if (res.statusCode == 200) 
-    //             {
-    //               getPetList({
-    //                 "value":"name",
-    //                 "name":self.form.name
-    //               }).then(res => {
-    //                 self.addPetId = res.data[0].id
-    //                 console.log(self.addPetId)
-    //                 addPicture({
-    //                   "belongId":res.data[0].id,
-    //                   "url":url
-    //                 }).then(res => {
-    //                 }).catch(err => {})
-    //                 self.$message({
-    //                   type: "info",
-    //                   message: "添加成功",
-    //                 });
-    //               }).catch(err => {})
-    //               self.reflash = true;
-    //               self.$refs.upload.clearFiles();
-    //             } else {
-    //               self.$refs.upload.clearFiles();
-    //               self.$message({
-    //                 type: "info",
-    //                 message: "添加失败,表单填写不完整",
-    //               });
-    //             }
-    //           })
-    //           .catch(function (error) {});
-    //         }else if(self.dialogTitle == 'edit'){
-    //           updatePet(self.form)
-    //           .then(function (res) {
-    //             if (res.statusCode == 200) {
-    //               self.reflash = true;
-    //               self.$refs.upload.clearFiles();
-    //               self.$message({
-    //                 type: "info",
-    //                 message: "修改成功",
-    //               });
-    //             } else {
-    //               self.$refs.upload.clearFiles();
-    //               self.$message({
-    //                 type: "info",
-    //                 message: "更改失败,未修改数据",
-    //               });
-    //             }
-    //           })
-    //           .catch(function (error) {});
-    //         }else{
-    //           addPicture({
-    //             "belongId":self.addPetId,
-    //             "url":url
-    //           }).then(res => {
-    //             console.log("addddddd")
-    //           }).catch(err => {})
-    //         }
-    //     }).catch(response => {
-    //         console.log('图片上传失败')
-    //   })
-    // },
+	  },
     handleRemove(file, fileList) {
       console.log(file, fileList);
     },
@@ -749,7 +687,9 @@ export default {
         this.loadNum++
     },
     //其他
-    get() {},
+    get() {
+      console.log(this.listQuery)
+    },
     fetchData() {
       this.listLoading = true;
       getList().then((response) => {

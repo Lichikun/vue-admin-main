@@ -294,6 +294,13 @@ export default {
         })
         .catch(function (error) {});
     },
+    listQuery: {
+      handler () { //这是vue的规定写法，当你watch的值发生变化的时候，就会触发这个handler，这是vue内部帮你做的事情
+        this.getUser()
+      },
+      deep: true,  // 可以深度检测到 obj 对象的属性值的变化
+      immediate: true //刷新加载  立马触发一次handler
+    },
   },
   created() {
     this.fetchData();
