@@ -43,12 +43,6 @@
               <div slot="tip" class="el-upload__tip">不选择上传就不更新头像</div>
             </el-upload>
           </el-form-item>
-  
-          
-          <el-form-item label="详细信息">
-            <el-input v-model="form.detail" style="width: 370px" />
-          </el-form-item>
-        
           <el-form-item label="所属商店">
             <el-select v-model="form.shopId" placeholder="请选择">
               <el-option
@@ -129,7 +123,7 @@
             <span>{{ scope.row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="详细信息" align="center">
+        <el-table-column label="图片" align="center">
           <template slot-scope="scope">
             <el-image v-if="loadComplete"
               class="table-td-thumb"
@@ -243,7 +237,7 @@
       return {
         curshop:"0",
         value:"",
-        addPetId:"",
+        addGoodsId:"",
         addPic:false,
         loadNum:0,
         addNum:0,
@@ -261,7 +255,7 @@
         total: 10,
         delList: [],
         multipleSelection: [],
-        getPetForm: {
+        getGoodsForm: {
           value: "shop_id",
           name: "",
         },
@@ -295,43 +289,45 @@
       };
     },
     watch: {
-      //监测是否刷新
-      reflash: function (newData, oldData) {
-        const self = this;
-        getGoodsPage({
-          "pageNum":self.listQuery.page,
-          "pageSize":self.listQuery.limit,
-          value: self.getPetForm.value,
-          name: self.getPetForm.name,
-        })
-          .then(function (res) {
-            self.list = res.data.records
+    //监测是否刷新
+    reflash: function (newData, oldData) {
+      const self = this;
+      getGoodsPage({
+        "pageNum":self.listQuery.page,
+        "pageSize":self.listQuery.limit,
+        value: self.getGoodsForm.value,
+        name: self.getGoodsForm.name,
+      })
+        .then(function (res) {
+          self.list = res.data.records
           self.total = res.data.total
-            for (var i = 0; i < self.list.length; i++) {
-              if (self.list[i].useful == 1) {
-                self.list[i].useful = true;
-              } else {
-                self.list[i].useful = false;
-              }
-              self.getUrl(self.list[i].id,i)
+          for (var i = 0; i < self.list.length; i++) {
+            if (self.list[i].useful == 1) {
+              self.list[i].useful = true;
+            } else {
+              self.list[i].useful = false;
             }
-            self.reload();
-            self.reflash = false;
-          })
-          .catch(function (error) {});
-      },
-      addNum: function (newData, oldData) {
-        if(this.addNum == this.list.length)
-          this.loadComplete = true
-      },
-      curshop: function (newData, oldData) {
+            self.getGoodsUrl(self.list[i].id,i)
+          }
+          self.reload();
+          self.reflash = false;
+        })
+        .catch(function (error) {});
+    },
+    curshop: function (newData, oldData) {
         if(this.curshop == "0")
-            this.getPetForm.name = ""
+            this.getGoodsForm.name = ""
         else
-            this.getPetForm.name = this.curshop
+            this.getGoodsForm.name = this.curshop
+        this.loadComplete = false
+        this.addNum = 0
         this.reflash = true
         },
-        listQuery: {
+    addNum: function (newData, oldData) {
+      if(this.addNum == this.list.length)
+        this.loadComplete = true
+    },
+    listQuery: {
       handler () { //这是vue的规定写法，当你watch的值发生变化的时候，就会触发这个handler，这是vue内部帮你做的事情
         this.loadComplete = false
         this.addNum = 0
@@ -340,41 +336,43 @@
       deep: true,  // 可以深度检测到 obj 对象的属性值的变化
       immediate: true //刷新加载  立马触发一次handler
     },
+  },
+  created() {
+    this.fetchData();
+    this.getGoods();
+    this.getShop()
+    console.log("trhis ")
+    console.log(this.$route.params.shopId)
+    // if(this.$route.params.shopId )
+    //     this.curshop = this.$route.params.shopId     
+  },
+  methods: {
+    //获取图片
+    getGoodsUrl(id,pos){
+      let self = this
+      var url= []
+      getPictureList({
+        "value":"belong_id",
+        "name":id
+      }).then(res => {
+        for(var i=0;i<res.data.length;i++)
+          url.push(self.PIC.pictureurl+res.data[i].url)
+        self.$set(self.list[pos],"urlList",url)
+        self.addNum++
+      }).catch(err => {
+
+      })
     },
-    created() {
-      this.fetchData();
-      this.getGoods();
-      this.getShop()
-      if(this.$route.params.shopId.length > 20)
-        this.curshop = this.$route.params.shopId     
+    //获取商店名
+    getShopName(id){
+      for(var i = 0;i< this.shopMsg.length ;i++){
+        if(id == this.shopMsg[i].id)
+          return this.shopMsg[i].name
+      }
     },
-    methods: {
-      //获取图片
-      getUrl(id,pos){
-        let self = this
-        var url= []
-        getPictureList({
-          "value":"belong_id",
-          "name":id
-        }).then(res => {
-          for(var i=0;i<res.data.length;i++)
-            url.push(self.PIC.pictureurl+res.data[i].url)
-          self.$set(self.list[pos],"urlList",url)
-          self.addNum++
-        }).catch(err => {
-  
-        })
-      },
-      //获取商店名
-      getShopName(id){
-        for(var i = 0;i< this.shopMsg.length ;i++){
-          if(id == this.shopMsg[i].id)
-            return this.shopMsg[i].name
-        }
-      },
-      //获取商店数据表
-      getShop(){
-        let self = this
+    //获取商店数据表
+    getShop(){
+      let self = this
           getShopList({
               "value":"id",
               "name":""
@@ -387,128 +385,93 @@
           }).catch(function(error){
             console.log(error)
           })
-      },
-      //宠物名搜索
-      search(){
-        let self = this
+        
+    },
+    //宠物名搜索
+    search(){
+      let self = this
+      getGoodsPage({
+        "pageNum":self.listQuery.page,
+        "pageSize":self.listQuery.limit,
+            "value":"name",
+            "name":self.query.name
+        })
+        .then(function(res){
+          self.list = res.data.records
+          self.total = res.data.total
+            for(var i=0;i<self.list.length;i++){
+                if(self.list[i].useful == 1)
+                    self.list[i].useful = true
+                else
+                    self.list[i].useful =false
+                self.getGoodsUrl(self.list[i].id,i)
+            }
+            self.reload()
+        }).catch(function(error){
+        })
+    },
+    //获取宠物数据表
+    getGoods(){
+      let self = this
         getGoodsPage({
           "pageNum":self.listQuery.page,
-          "pageSize":self.listQuery.limit,
-              "value":"name",
-              "name":self.query.name
-          })
-          .then(function(res){
-            self.list = res.data.records
+        "pageSize":self.listQuery.limit,
+            "value":self.getGoodsForm.value,
+            "name":self.getGoodsForm.name
+        })
+        .then(function(res){
+          self.list = res.data.records
           self.total = res.data.total
               for(var i=0;i<self.list.length;i++){
                   if(self.list[i].useful == 1)
                       self.list[i].useful = true
                   else
                       self.list[i].useful =false
-                  self.getUrl(self.list[i].id,i)
+                  self.getGoodsUrl(self.list[i].id,i)
               }
-              self.reload()
-          }).catch(function(error){
-          })
-      },
-      //获取宠物数据表
-      getGoods(){
-        let self = this
-          getGoodsPage({
-            "pageNum":self.listQuery.page,
-          "pageSize":self.listQuery.limit,
-              "value":self.getPetForm.value,
-              "name":self.getPetForm.name
-          })
-          .then(function(res){
-            self.list = res.data.records
-          self.total = res.data.total
-                for(var i=0;i<self.list.length;i++){
-                    if(self.list[i].useful == 1)
-                        self.list[i].useful = true
-                    else
-                        self.list[i].useful =false
-                    self.getUrl(self.list[i].id,i)
-                }
-              self.reload()
-          }).catch(function(error){
-          })
-          .catch(function (error) {});
-      },
-      // 修改用户启停状态
-      turnUseful(row) {
-        var flag;
-        if (row.useful == true) {
-          flag = 1;
-        } else {
-          flag = 0;
-        }
-        updateGoodsUseful({
-          id: row.id,
-          flag: flag,
+            self.reload()
+        }).catch(function(error){
         })
-          .then(function (res) {})
-          .catch(function (error) {
-            console.log(error);
-          });
-      },
-      // 处理多选
-      handleSelectionChange(val) {
-        this.multipleSelection = val;
-      },
-      // 删除多选内容
-      delAllSelection() {
-        const self = this;
-        const length = this.multipleSelection.length;
-        let str = "";
-        this.delList = this.delList.concat(this.multipleSelection);
-        for (let i = 0; i < length; i++) {
-          str += this.multipleSelection[i].id + ",";
-        }
-        if (str != "") {
-          this.$confirm("此操作将永久删除这些数据, 是否继续?", "提示", {
-            confirmButtonText: "确定",
-            cancelButtonText: "取消",
-            type: "warning",
-          })
-            .then(() => {
-              deleteGoods({ ids: str })
-                .then(function (res) {
-                  self.reflash = true;
-                })
-                .catch(function (error) {
-                  console.log(error);
-                });
-              this.$message({
-                type: "success",
-                message: "删除成功!",
-              });
-            })
-            .catch(() => {
-              this.$message({
-                type: "info",
-                message: "已取消删除",
-              });
-            });
-        } else {
-          this.$message({
-            type: "info",
-            message: "未选中数据",
-          });
-        }
-      },
-      // 行内删除
-      handleDelete(index, row) {
-        const self = this;
-        this.$confirm("此操作将永久删除该用户, 是否继续?", "提示", {
+        .catch(function (error) {});
+    },
+    // 修改用户启停状态
+    turnUseful(row) {
+      var flag;
+      if (row.useful == true) {
+        flag = 1;
+      } else {
+        flag = 0;
+      }
+      updateGoodsUseful({
+        id: row.id,
+        flag: flag,
+      })
+        .then(function (res) {})
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    // 处理多选
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+    },
+    // 删除多选内容
+    delAllSelection() {
+      const self = this;
+      const length = this.multipleSelection.length;
+      let str = "";
+      this.delList = this.delList.concat(this.multipleSelection);
+      for (let i = 0; i < length; i++) {
+        str += this.multipleSelection[i].id + ",";
+      }
+      if (str != "") {
+        this.$confirm("此操作将永久删除这些数据, 是否继续?", "提示", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
           type: "warning",
         })
           .then(() => {
-            deleteGoods({
-              ids: row.id,
-            })
+            deleteGoods({ ids: str })
               .then(function (res) {
                 self.reflash = true;
               })
@@ -526,42 +489,162 @@
               message: "已取消删除",
             });
           });
-      },
-      // 处理新增
-      handleCreate() {
-        console.log("create")
-        this.dialogTitle = "create";
-        this.dialogFormVisible = true;
-        this.form = Object.assign({});
-      },
-      // 处理修改
-      handleEdit(row) {
-        this.dialogTitle = "Edit";
-        this.dialogFormVisible = true;
-        this.form = Object.assign({}, row); // copy obj
-      },
-      // 确认新增
-      createData(){
-        const self = this;
-        this.dialogFormVisible = false;
-        if(this.loadNum != 0)
-            this.submitUpload()
-        else{
-          addGoods(self.form)
+      } else {
+        this.$message({
+          type: "info",
+          message: "未选中数据",
+        });
+      }
+    },
+    // 行内删除
+    handleDelete(index, row) {
+      const self = this;
+      this.$confirm("此操作将永久删除该用户, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          deleteGoods({
+            ids: row.id,
+          })
+            .then(function (res) {
+              self.reflash = true;
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+          this.$message({
+            type: "success",
+            message: "删除成功!",
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    // 处理新增
+    handleCreate() {
+      console.log("create")
+      this.dialogTitle = "create";
+      this.dialogFormVisible = true;
+      this.form = Object.assign({});
+    },
+    // 处理修改
+    handleEdit(row) {
+      this.dialogTitle = "Edit";
+      this.dialogFormVisible = true;
+      this.form = Object.assign({}, row); // copy obj
+    },
+    // 确认新增
+    createData(){
+      const self = this;
+      this.dialogFormVisible = false;
+      if(this.loadNum != 0)
+          this.submitUpload()
+      else{
+        addGoods(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) 
+                {
+                  console.log(res)
+                  self.reflash = true;
+                  self.$message({
+                    type: "info",
+                    message: "添加成功",
+                  });
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "添加失败,表单填写不完整",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
+    },
+    // 确认修改
+    updateData() {
+      const self = this;
+      this.dialogFormVisible = false;
+      if (this.form.useful == true) {
+        this.form.useful = 1;
+      } else {
+        this.form.useful = 0;
+      }
+      if(this.loadNum != 0)
+        this.submitUpload()
+      else{
+        updateGoods(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) {
+                  self.reflash = true;
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "修改成功",
+                  });
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "更改失败,未修改数据",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
+
+    },
+    uploadFile(file) {
+	        this.formData.append('file', file.file);
+	  },
+    submitUpload() {
+      const self = this
+        console.log("upload")
+	        this.formData = new FormData()
+          this.$refs.upload.submit();
+          uploadGoods(this.formData).then(response => {
+              console.log(response)
+              var pList = response.data
+              if(self.dialogTitle == 'create')
+              {
+                addGoods(self.form)
                 .then(function (res) {
+                  console.log()
                   if (res.statusCode == 200) 
                   {
-                    console.log(res)
+                    getGoodsList({
+                      "value":"name",
+                      "name":self.form.name
+                    }).then(res => {
+                      self.addGoodsId = res.data[0].id
+                      for(var k = 0;k<pList.length;k++){
+                          addPicture({
+                            "belongId":res.data[0].id,
+                            "url":"goods/"+pList[k],
+                            "state":k
+                          }).then(res => {
+                          }).catch(err => {})
+                          self.$message({
+                            type: "info",
+                            message: "添加成功",
+                          });
+                      }
+                    }).catch(err => {})
                     self.reflash = true;
-                    self.$message({
-                      type: "info",
-                      message: "添加成功",
-                    });
                     self.$refs.upload.clearFiles();
-                    self.loadNum = 0
                   } else {
                     self.$refs.upload.clearFiles();
-                    self.loadNum = 0
                     self.$message({
                       type: "info",
                       message: "添加失败,表单填写不完整",
@@ -569,33 +652,18 @@
                   }
                 })
                 .catch(function (error) {});
-        }
-      },
-      // 确认修改
-      updateData() {
-        const self = this;
-        this.dialogFormVisible = false;
-        if (this.form.useful == true) {
-          this.form.useful = 1;
-        } else {
-          this.form.useful = 0;
-        }
-        if(this.loadNum != 0)
-          this.submitUpload()
-        else{
-          updateGoods(self.form)
+              }else if(self.dialogTitle == 'edit'){
+                updateGoods(self.form)
                 .then(function (res) {
                   if (res.statusCode == 200) {
                     self.reflash = true;
                     self.$refs.upload.clearFiles();
-                    self.loadNum = 0
                     self.$message({
                       type: "info",
                       message: "修改成功",
                     });
                   } else {
                     self.$refs.upload.clearFiles();
-                    self.loadNum = 0
                     self.$message({
                       type: "info",
                       message: "更改失败,未修改数据",
@@ -603,94 +671,25 @@
                   }
                 })
                 .catch(function (error) {});
-        }
-  
-      },
-      uploadFile(file) {
-              this.formData.append('file', file.file);
-        },
-      submitUpload() {
-        const self = this
-          console.log("upload")
-              this.formData = new FormData()
-            this.$refs.upload.submit();
-            uploadGoods(this.formData).then(response => {
-                console.log(response)
-                var pList = response.data
-                if(self.dialogTitle == 'create')
-                {
-                  addGoods(self.form)
-                  .then(function (res) {
-                    console.log()
-                    if (res.statusCode == 200) 
-                    {
-                      getGoodsList({
-                        "value":"name",
-                        "name":self.form.name
-                      }).then(res => {
-                        self.addPetId = res.data[0].id
-                        for(var k = 0;k<pList.length;k++){
-                            addPicture({
-                              "belongId":res.data[0].id,
-                              "url":"goods/"+pList[k],
-                              "state":k
-                            }).then(res => {
-                            }).catch(err => {})
-                            self.$message({
-                              type: "info",
-                              message: "添加成功",
-                            });
-                        }
-                      }).catch(err => {})
-                      self.reflash = true;
-                      self.$refs.upload.clearFiles();
-                    } else {
-                      self.$refs.upload.clearFiles();
-                      self.$message({
-                        type: "info",
-                        message: "添加失败,表单填写不完整",
-                      });
-                    }
-                  })
-                  .catch(function (error) {});
-                }else if(self.dialogTitle == 'edit'){
-                  updateGoods(self.form)
-                  .then(function (res) {
-                    if (res.statusCode == 200) {
-                      self.reflash = true;
-                      self.$refs.upload.clearFiles();
-                      self.$message({
-                        type: "info",
-                        message: "修改成功",
-                      });
-                    } else {
-                      self.$refs.upload.clearFiles();
-                      self.$message({
-                        type: "info",
-                        message: "更改失败,未修改数据",
-                      });
-                    }
-                  })
-                  .catch(function (error) {});
-                }
-            }).catch(err => {
-                console.log(err)
-            })
-                this.$refs.upload.clearFiles();
-          },
-      handleRemove(file, fileList) {
-        console.log(file, fileList);
-      },
-      handlePreview(file) {
-        console.log(file);
-      },
-      handleExceed(files, fileList) {
-        console.log(files)
-        this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length } 个文件`);
-      },
-      handleChange(){
-          this.loadNum++
-      },
+              }
+          }).catch(err => {
+              console.log(err)
+          })
+	      	this.$refs.upload.clearFiles();
+	  },
+    handleRemove(file, fileList) {
+      console.log(file, fileList);
+    },
+    handlePreview(file) {
+      console.log(file);
+    },
+    handleExceed(files, fileList) {
+      console.log(files)
+      this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length } 个文件`);
+    },
+    handleChange(){
+        this.loadNum++
+    },
       //其他
       get() {},
       fetchData() {

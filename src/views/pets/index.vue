@@ -87,7 +87,14 @@
     </el-dialog>
     
     <div class="handle-box">
-      <button @click="get()">++</button>
+      <el-select v-model="curshop" placeholder="请选择">
+            <el-option
+            v-for="item in shopMsg"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+            </el-option>
+        </el-select>
         <el-input v-model="query.name" placeholder="用户名" class="handle-input mr10"></el-input>
         <el-button type="primary" icon="el-icon-search" @click="search()">搜索</el-button>
         <el-button
@@ -223,8 +230,14 @@ import {
   addPet,
   updatePet,
 } from "@/api/apis/pets";
+import { mapGetters } from 'vuex'
 import { smart } from "@babel/template";
 export default {
+  computed: {
+        ...mapGetters([
+            'curShop'
+        ]),
+    },
   components: {
       Pagination,
     },
@@ -241,6 +254,7 @@ export default {
   },
   data() {
     return {
+      curshop:"0",
       options: [{
           value: '公',
           label: '公'
@@ -268,7 +282,7 @@ export default {
       delList: [],
       multipleSelection: [],
       getPetForm: {
-        value: "id",
+        value: "shop_id",
         name: "",
       },
       form: {
@@ -331,6 +345,17 @@ export default {
       if(this.addNum == this.list.length)
         this.loadComplete = true
     },
+    curshop: function (newData, oldData) {
+      console.log(this.curshop)
+        if(this.curshop == "0")
+            this.getPetForm.name = ""
+        else
+            this.getPetForm.name = this.curshop
+            
+        this.loadComplete = false
+        this.addNum = 0
+        this.reflash = true
+        },
     listQuery: {
       handler () { //这是vue的规定写法，当你watch的值发生变化的时候，就会触发这个handler，这是vue内部帮你做的事情
         this.loadComplete = false
@@ -373,14 +398,18 @@ export default {
     //获取商店数据表
     getShop(){
       let self = this
-        getShopList({
-            "value":"id",
-            "name":""
-        }).then(function(res){
-          self.shopMsg = res.data
-        }).catch(function(error){
-          console.log(error)
-        })
+          getShopList({
+              "value":"id",
+              "name":""
+          }).then(function(res){
+            self.shopMsg = res.data
+            self.shopMsg.push({
+                "id":"0",
+                "name":"全部商店"
+            })
+          }).catch(function(error){
+            console.log(error)
+          })
         
     },
     //宠物名搜索
