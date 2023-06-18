@@ -53,6 +53,9 @@
               </el-option>
             </el-select>
           </el-form-item>
+          <el-form-item label="详细">
+            <el-input v-model="form.details" style="width: 370px" />
+          </el-form-item>
           <el-form-item label="库存">
             <el-input v-model="form.stock" style="width: 370px" />
           </el-form-item>
