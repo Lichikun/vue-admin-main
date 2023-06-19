@@ -21,7 +21,7 @@ export function updateShopUseful(params) {
 
 // 获取商店列表接口
 export function getShopList(params) {
-    return post("/shop/list", params);
+    return post("/shop/listShop", params);
 }
 
 // 分页商店列表接口

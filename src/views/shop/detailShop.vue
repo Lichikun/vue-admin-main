@@ -380,6 +380,7 @@
               "value":"id",
               "name":""
           }).then(function(res){
+            console.log(res)
             self.shopMsg = res.data
             self.shopMsg.push({
                 "id":"0",
