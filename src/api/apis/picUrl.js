@@ -57,6 +57,10 @@ export function uploadShop(params){
 	return postImg("/picture/uploadShop",params)
 }
 
+// 上传shopp接口
+export function uploadVideo(params){
+	return postImg("/picture/uploadVideo",params)
+}
 export default{
 	pictureurl,
 }

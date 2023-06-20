@@ -29,3 +29,13 @@ export function getGoodsList(params) {
 export function getGoodsPage(params) {
   return post("/goods/page", params);
 }
+
+// 获得商品资源接口
+export function getGoodsFile(params) {
+  return post("/goods/getGoodFile", params);
+}
+
+// 获得商品资源接口
+export function getGoodsVideoFile(params) {
+  return post("/goods/getGoodVideoFile", params);
+}

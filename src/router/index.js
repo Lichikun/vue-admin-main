@@ -134,7 +134,28 @@ export const constantRoutes = [{
             name: 'pets',
             component: () =>
                 import ('@/views/pets/index'),
-            meta: { title: '宠物管理', icon: 'el-icon-s-order' }
+            meta: { title: '宠物管理', icon: 'el-icon-basketball' }
+        }]
+    },
+    {
+        path: '/resource',
+        component: Layout,
+        redirect: '/example/table',
+        name: 'resource',
+        meta: { title: '资源管理', icon: 'el-icon-more' },
+        children: [{
+            path: 'index',
+            name: 'resource',
+            component: () =>
+                import ('@/views/resource/index'),
+            meta: { title: '图片管理', icon: 'el-icon-picture' }
+        },
+        {
+            path: 'video',
+            name: 'resource',
+            component: () =>
+                import ('@/views/resource/video'),
+            meta: { title: '视频管理', icon: 'el-icon-video-camera-solid' }
         }]
     },
     {

@@ -28,3 +28,13 @@ export function getPetList(params) {
 export function getPetPage(params) {
     return post("/pets/page", params);
 }
+
+// 获得宠物资源接口
+export function getPetFile(params) {
+    return post("/pets/getPetFile", params);
+}
+
+// 获得宠物资源接口
+export function getVedioFile(params) {
+    return post("/pets/getVideoFile", params);
+}
