@@ -2,6 +2,7 @@ import Axios from "axios";
 import qs from "qs"
 // 创建axios实例
 const instance = Axios.create({
+//baseURL: 'http://8.130.122.169:8088/petShop',
 baseURL: 'http://localhost:8088/petShop',
 timeout: 5000,
 headers: {

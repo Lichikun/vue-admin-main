@@ -1,6 +1,6 @@
 <template>
   <div>
- <el-upload class="upload-demo" ref="upload" action="#" 
+ <!-- <el-upload class="upload-demo" ref="upload" action="#" 
  :on-preview="handlePreview" :on-change="handleChange" :on-remove="handleRemove" 
  :file-list="fileList" :auto-upload="false" :on-success="handleSuccess" 
  :http-request="uploadFile"> 
@@ -8,7 +8,8 @@
   <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
   
   </el-upload>
-  <el-button size="small" type="success" @click="submitUpload()" >发布</el-button> 
+  <el-button size="small" type="success" @click="submitUpload()" >发布</el-button>  -->
+  <el-button @click="a()"> test</el-button>
   </div>
   
 </template>
@@ -16,7 +17,9 @@
 
 <script>
 import { uploadPet } from '@/api/apis/picUrl';
+import { getAllOrders,getOneOrders } from '@/api/apis/orders';
 import { addPicture } from '@/api/apis/picUrl';
+import { Avatar } from 'element-ui';
   export default {
     data() {
       return {
@@ -43,6 +46,17 @@ import { addPicture } from '@/api/apis/picUrl';
 	      	this.$refs.upload.clearFiles();
 
 	    },
+      a(){
+        let self = this
+        getAllOrders({
+          "pageNum":1,
+        "pageSize":10,
+        }).then(res =>{
+          console.log(res)
+        }).catch(err => {
+          console.log(err)
+        })
+      }
     }
   }
 </script>

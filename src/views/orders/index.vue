@@ -99,7 +99,76 @@
       highlight-current-row
       @selection-change="handleSelectionChange"
     >
-      <el-table-column type="selection" width="45" align="center" />
+    <el-table-column type="selection" width="45" align="center" />
+     <el-table-column align="center" label="序号" width="55">
+        <template slot-scope="scope">
+          {{ scope.$index }}
+        </template>
+      </el-table-column>
+    <el-table-column type="expand">
+      <template slot-scope="props">
+        <el-form label-position="left" inline class="demo-table-expand">
+          <el-form-item label="商品名称">
+            <span>{{ props.row.name }}</span>
+          </el-form-item>
+          <el-form-item label="所属店铺">
+            <span>{{ props.row.shop }}</span>
+          </el-form-item>
+          <el-form-item label="商品单价">
+            <span>{{ props.row.id }}</span>
+          </el-form-item>
+          <el-form-item label="商品数量">
+            <span>{{ props.row.shopId }}</span>
+          </el-form-item>
+          <el-form-item label="收件人">
+            <span>{{ props.row.address }}</span>
+          </el-form-item>
+          <el-form-item label="商品描述">
+            <span>{{ props.row.desc }}</span>
+          </el-form-item>
+        </el-form>
+      </template>
+    </el-table-column>
+    <el-table-column
+      label="订单号"
+      prop="id"
+      width="300" align="center">
+    </el-table-column>
+    <el-table-column
+      label="商品名称"
+      prop="name">
+    </el-table-column>
+    <el-table-column
+      label="价格"
+      prop="price"
+      >
+    </el-table-column>
+    <el-table-column
+      label="状态"
+      prop="state"
+      >
+    </el-table-column>
+     <el-table-column
+      label="生成时间"
+      prop="time">
+    </el-table-column>
+    <el-table-column label="操作" width="130px" align="center" fixed="right">
+        <template slot-scope="scope">
+          <el-button
+            type="primary"
+            icon="el-icon-edit"
+            size="mini"
+            @click="handleEdit(scope.row)"
+          />
+          <el-button
+            type="danger"
+            icon="el-icon-delete"
+            size="mini"
+            @click="handleDelete(scope.$index, scope.row)"
+          />
+        </template>
+      </el-table-column> 
+      <!-- <el-table-column type="selection" width="45" align="center" />
       <el-table-column align="center" label="序号" width="55">
         <template slot-scope="scope">
           {{ scope.$index }}
@@ -170,7 +239,7 @@
             @click="handleDelete(scope.$index, scope.row)"
           />
         </template>
-      </el-table-column>
+      </el-table-column> -->
     </el-table>
   </div>
 </template>
@@ -463,4 +532,16 @@ export default {
   width: 40px;
   height: 40px;
 }
+.demo-table-expand {
+    font-size: 0;
+  }
+  .demo-table-expand label {
+    width: 90px;
+    color: #99a9bf;
+  }
+  .demo-table-expand .el-form-item {
+    margin-right: 0;
+    margin-bottom: 0;
+    width: 50%;
+  }
 </style>
