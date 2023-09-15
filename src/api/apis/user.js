@@ -1,4 +1,4 @@
-import { get , post , postJson} from "../axios"
+import {get, post, postJson } from "../axios"
 //用户登入
 export function loginUser(params) {
     return postJson("/user/login", params);
@@ -32,4 +32,9 @@ export function getUserList(params) {
 // 分页用户列表接口
 export function getUserPage(params) {
     return post("/user/page", params);
+}
+
+// 获取用户数量
+export function getUserNum(params) {
+    return post("/user/num", params);
 }
