@@ -44,3 +44,13 @@ export function getGoodsVideoFile(params) {
 export function getGoodsNum(params) {
     return post("/goods/num", params);
 }
+
+// 获取商品数量
+export function getGoodsPricePhase(params) {
+    return post("/goods/getGoodsPricePhase", params);
+}
+
+// 获取商品种类数量
+export function getGoodsTypeNum(params) {
+    return post("/goods/getGoodsTypeNum", params);
+}

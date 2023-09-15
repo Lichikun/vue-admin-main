@@ -15,6 +15,8 @@
 
 <script>
 import { getOrdersState } from "@/api/apis/orders";
+
+import { getPetsPricePhase } from "@/api/apis/pets";
 import { uploadPet } from "@/api/apis/picUrl";
 import { getAllOrders, getOneOrders } from "@/api/apis/orders";
 import { addPicture } from "@/api/apis/picUrl";
@@ -49,9 +51,9 @@ export default {
     },
     a() {
       let self = this;
-      getOrdersState({})
+      getPetsPricePhase({})
         .then(function (res) {
-          console.log("ordersRes:" + res.data["0"]);
+          console.log(res);
         })
         .catch(function (error) {});
 
