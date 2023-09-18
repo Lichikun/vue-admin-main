@@ -1,4 +1,4 @@
-import { get , post , postJson} from "../axios"
+import {get, post, postJson } from "../axios"
 // 添加商店接口
 export function addShop(params) {
     return postJson("/shop/save", params);
@@ -27,4 +27,9 @@ export function getShopList(params) {
 // 分页商店列表接口
 export function getShopPage(params) {
     return post("/shop/page", params);
+}
+
+// 获取商店数量
+export function getShopNum(params) {
+    return post("/shop/num", params);
 }

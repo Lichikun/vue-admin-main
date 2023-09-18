@@ -15,6 +15,12 @@ import picUrl from './api/apis/picUrl'
 import '@/icons' // icon
 import '@/permission' // permission control
 
+// 引入echarts
+import * as echarts from 'echarts'
+// 设置全局 echarts
+Vue.prototype.$echarts = echarts
+
+
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
@@ -24,8 +30,8 @@ import '@/permission' // permission control
  * please remove it before going online ! ! !
  */
 if (process.env.NODE_ENV === 'production') {
-  const { mockXHR } = require('../mock')
-  mockXHR()
+    const { mockXHR } = require('../mock')
+    mockXHR()
 }
 
 // set ElementUI lang to EN
@@ -37,8 +43,8 @@ Vue.config.productionTip = false
 
 
 new Vue({
-  el: '#app',
-  router,
-  store,
-  render: h => h(App)
+    el: '#app',
+    router,
+    store,
+    render: h => h(App)
 })

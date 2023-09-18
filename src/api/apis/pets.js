@@ -1,4 +1,4 @@
-import { get , post , postJson} from "../axios"
+import {get, post, postJson } from "../axios"
 // 添加宠物接口
 export function addPet(params) {
     return postJson("/pets/save", params);
@@ -37,4 +37,14 @@ export function getPetFile(params) {
 // 获得宠物资源接口
 export function getVedioFile(params) {
     return post("/pets/getVideoFile", params);
+}
+
+// 获得宠物分段价格
+export function getPetsPricePhase(params) {
+    return post("/pets/getPetsPricePhase", params);
+}
+
+// 获得宠物分段价格
+export function getPetsTypeNum(params) {
+    return post("/pets/getPetsTypeNum", params);
 }
