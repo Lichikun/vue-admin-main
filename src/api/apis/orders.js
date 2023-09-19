@@ -47,5 +47,5 @@ export function getOneOrders(params) {
 
 // 获得全部订单接口
 export function getAllOrders(params) {
-    return post("/orders/getAllOrders", params);
+    return post("/orders/getAllOrders_back", params);
 }

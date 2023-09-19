@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container" >
     <!--表单组件-->
     <el-dialog
       append-to-body
@@ -10,48 +10,42 @@
     >
       <el-form ref="form" :model="form" size="small" label-width="80px">
         <el-form-item
-          label="姓名"
-          :rules="[{ required: true, message: '请输入姓名', trigger: 'blur' }]"
-          prop="name"
-        >
-          <el-input v-model="form.name" style="width: 370px" />
+          label="商品名称"
+          :disabled="true"
+          prop="itemName"
+        ><el-input v-model="form.name" style="width: 370px" :disabled="true"/>
         </el-form-item>
-
-        <el-form-item
-          label="昵称"
-          prop="nickname"
-          :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]"
-        >
-          <el-input v-model="form.nickname" style="width: 370px" />
+        <el-form-item label="类型" prop="itemType" >
+          <el-input v-model="form.type" style="width: 370px" :disabled="true"/>
         </el-form-item>
-
-        <el-form-item
-          v-if="dialogTitle == 'create'"
-          label="密码"
-          prop="password"
-          :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]"
-        >
-          <el-input v-model="form.password" style="width: 370px" />
+        <el-form-item label="价格" prop="price" >
+          <el-input v-model="form.price"  style="width: 370px" :disabled="true"/>
         </el-form-item>
-
-        <el-form-item v-else label="密码">
-          <el-input
-            v-model="form.password"
-            placeholder="不填不修改密码"
-            style="width: 370px"
-          />
+        
+      
+        <el-form-item label="所属商店">
+          <el-select v-model="form.shopId" placeholder="请选择">
+            <el-option
+              v-for="item in shopMsg"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id">
+            </el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="头像">
-          <el-input v-model="form.avatar" style="width: 370px" />
+        
+        <el-form-item label="性别" >
+          <el-select v-model="form.sex" placeholder="请选择">
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="联系电话">
-          <el-input v-model="form.tele" style="width: 370px" />
-        </el-form-item>
-        <el-form-item label="邮箱">
-          <el-input v-model="form.email" style="width: 370px" />
-        </el-form-item>
-        <el-form-item label="性别">
-          <el-input v-model="form.sex" style="width: 370px" />
+        <el-form-item label="年龄">
+          <el-input v-model="form.age" style="width: 370px" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -65,30 +59,30 @@
         >
       </div>
     </el-dialog>
-
+    
     <div class="handle-box">
-      <el-input
-        v-model="query.name"
-        placeholder="商店名"
-        class="handle-input mr10"
-      />
-      <el-button type="primary" icon="el-icon-search" @click="get"
-        >搜索</el-button
-      >
-      <el-button
-        type="primary"
-        icon="el-icon-delete"
-        class="handle-del"
-        @click="handleCreate"
-        >新增</el-button
-      >
-      <el-button
-        type="danger"
-        icon="el-icon-delete"
-        class="handle-del mr10"
-        @click="delAllSelection"
-        >批量删除</el-button
-      >
+      <el-select v-model="curshop" placeholder="请选择">
+            <el-option
+            v-for="item in stateOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+            </el-option>
+        </el-select>
+        <el-input v-model="query.name" placeholder="订单号" class="handle-input mr10"></el-input>
+        <el-button type="primary" icon="el-icon-search" @click="search()">搜索</el-button>
+        <el-button
+            type="danger"
+            icon="el-icon-delete"
+            class="handle-del"
+            @click="delAllSelection"
+        >批量删除</el-button>
+        <el-button
+            type="warning"
+            icon="el-icon-refresh-right"
+            class="handle-del mr10"
+            @click="$router.go(0)"
+        >重置</el-button>
     </div>
     <el-table
       v-loading="listLoading"
@@ -109,22 +103,19 @@
       <template slot-scope="props">
         <el-form label-position="left" inline class="demo-table-expand">
           <el-form-item label="商品名称">
-            <span>{{ props.row.name }}</span>
-          </el-form-item>
-          <el-form-item label="所属店铺">
-            <span>{{ props.row.shop }}</span>
+            <span>{{ props.row.itemName }}</span>
           </el-form-item>
           <el-form-item label="商品单价">
-            <span>{{ props.row.id }}</span>
+            <span>{{ props.row.goodsPrice }}</span>
           </el-form-item>
           <el-form-item label="商品数量">
-            <span>{{ props.row.shopId }}</span>
+            <span>{{ props.row.goodsQuantity }}</span>
           </el-form-item>
           <el-form-item label="收件人">
-            <span>{{ props.row.address }}</span>
+            <span>{{ props.row.address +'  ' +props.row.name}}</span>
           </el-form-item>
-          <el-form-item label="商品描述">
-            <span>{{ props.row.desc }}</span>
+          <el-form-item label="商品分类">
+            <span>{{ props.row.itemType }}</span>
           </el-form-item>
         </el-form>
       </template>
@@ -136,12 +127,15 @@
     </el-table-column>
     <el-table-column
       label="商品名称"
-      prop="name">
+      width="240px"
+      prop="itemName">
     </el-table-column>
     <el-table-column
       label="价格"
-      prop="price"
       >
+      <template slot-scope="props">
+        <span>{{ props.row.goodsPrice * props.row.goodsQuantity  }}</span>
+        </template>
     </el-table-column>
     <el-table-column
       label="状态"
@@ -149,8 +143,9 @@
       >
     </el-table-column>
      <el-table-column
+     width="180px"
       label="生成时间"
-      prop="time">
+      prop="creatTime">
     </el-table-column>
     <el-table-column label="操作" width="130px" align="center" fixed="right">
         <template slot-scope="scope">
@@ -241,19 +236,37 @@
         </template>
       </el-table-column> -->
     </el-table>
+    <div class="page">
+      <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"  />
+    </div>
   </div>
 </template>
 
 <script>
 import { getList } from "@/api/table";
+import Pagination from '@/components/Pagination/index.vue'
+import { getShopList } from "@/api/apis/shop";
+import { getPictureList,addPicture,uploadPet} from "@/api/apis/picUrl";
+import { getAllOrders } from "@/api/apis/orders";
 import {
-  getUserList,
-  updateUserUseful,
-  deleteUser,
-  addUser,
-  updateUser,
-} from "@/api/apis/user";
+  getPetList,
+  getPetPage,
+  updatePetUseful,
+  deletePet,
+  addPet,
+  updatePet,
+} from "@/api/apis/pets";
+import { mapGetters } from 'vuex'
+import { smart } from "@babel/template";
 export default {
+  computed: {
+        ...mapGetters([
+            'curShop'
+        ]),
+    },
+  components: {
+      Pagination,
+    },
   inject: ["reload"],
   filters: {
     statusFilter(status) {
@@ -267,25 +280,48 @@ export default {
   },
   data() {
     return {
+      curshop:"0",
+      options: [{
+          value: '公',
+          label: '公'
+        }, {
+          value: '母',
+          label: '母'
+        }],
+      value:"",
+      addPetId:"",
+      addPic:false,
+      loadNum:0,
+      addNum:0,
+      url:"https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg",
+      loadComplete:false,
+      shopMsg:[],
+      imageUrl:"",
+      srcList:[],
+      formData: '',
+      fileList:[],
       reflash: false,
       dialogFormVisible: false,
       isRouterAlive: true,
       dialogTitle: "",
-      total: 0,
+      total: 10,
       delList: [],
       multipleSelection: [],
-      getUserForm: {
-        value: "id",
+      getPetForm: {
+        value: "shop_id",
         name: "",
       },
       form: {
         name: "",
-        nickname: "",
-        avatar: "",
-        tele: "",
-        sex: "",
-        email: "",
-        password: "",
+        urlList:[],
+        description:"",
+        type:"",
+        price:"",
+        shopId:"",
+        sex:"",
+        age:"",
+        useful:"",
+        avatar:""
       },
       query: {
         address: "",
@@ -295,77 +331,169 @@ export default {
       },
       list: null,
       listLoading: true,
+      listQuery: {
+          page: 1,
+          limit: 10,
+          importance: undefined,
+          title: undefined,
+          type: undefined,
+          sort: '+id'
+        },
+        stateOptions: [{
+          value: '0',
+          label: '待支付'
+        }, {
+          value: '1',
+          label: '待发货'
+        }, {
+          value: '-1',
+          label: '已取消'
+        }, {
+          value: '-2',
+          label: '已退化'
+        }, ],
     };
   },
   watch: {
+    //监测是否刷新
     reflash: function (newData, oldData) {
       const self = this;
-      getUserList({
-        value: self.getUserForm.value,
-        name: self.getUserForm.name,
+      getAllOrders({
+        "pageNum":self.listQuery.page,
+        "pageSize":self.listQuery.limit,
       })
         .then(function (res) {
-          self.list = res.data;
+          self.list = res.data
+          self.total = res.data.total
           for (var i = 0; i < self.list.length; i++) {
             if (self.list[i].useful == 1) {
               self.list[i].useful = true;
             } else {
               self.list[i].useful = false;
             }
-            if (self.list[i].avatar == null) {
-              self.list[i].avatar = "avatar/none.jpg";
-            }
+            self.getPetUrl(self.list[i].id,i)
           }
           self.reload();
           self.reflash = false;
         })
         .catch(function (error) {});
     },
+    addNum: function (newData, oldData) {
+      if(this.addNum == this.list.length)
+        this.loadComplete = true
+    },
+    curshop: function (newData, oldData) {
+      console.log(this.curshop)
+        if(this.curshop == "0")
+            this.getPetForm.name = ""
+        else
+            this.getPetForm.name = this.curshop
+            
+        this.loadComplete = false
+        this.addNum = 0
+        this.reflash = true
+        },
+    listQuery: {
+      handler () { //这是vue的规定写法，当你watch的值发生变化的时候，就会触发这个handler，这是vue内部帮你做的事情
+        this.loadComplete = false
+        this.addNum = 0
+        this.getOrders()
+      },
+      deep: true,  // 可以深度检测到 obj 对象的属性值的变化
+      immediate: true //刷新加载  立马触发一次handler
+    },
   },
   created() {
     this.fetchData();
-    this.getUser();
+    this.getOrders();
+    this.getShop()
   },
   methods: {
-    // 获取用户数据表
-    getUser() {
-      const self = this;
-      getUserList({
-        value: self.getUserForm.value,
-        name: self.getUserForm.name,
+    //获取图片
+    getPetUrl(id,pos){
+      let self = this
+      var url= []
+      getPictureList({
+        "value":"belong_id",
+        "name":id
+      }).then(res => {
+        for(var i=0;i<res.data.length;i++)
+          url.push(self.PIC.pictureurl+res.data[i].url)
+        self.$set(self.list[pos],"urlList",url)
+        self.addNum++
+      }).catch(err => {
+
       })
-        .then(function (res) {
-          self.list = res.data;
-          for (var i = 0; i < self.list.length; i++) {
-            if (self.list[i].useful == 1) {
-              self.list[i].useful = true;
-            } else {
-              self.list[i].useful = false;
+    },
+    //获取商店名
+    getShopName(id){
+      for(var i = 0;i< this.shopMsg.length ;i++){
+        if(id == this.shopMsg[i].id)
+          return this.shopMsg[i].name
+      }
+    },
+    //获取商店数据表
+    getShop(){
+      let self = this
+          getShopList({
+              "value":"id",
+              "name":""
+          }).then(function(res){
+            self.shopMsg = res.data
+            self.shopMsg.push({
+                "id":"0",
+                "name":"全部商店"
+            })
+          }).catch(function(error){
+            console.log(error)
+          })
+        
+    },
+    //宠物名搜索
+    search(){
+      let self = this
+      getPetPage({
+        "pageNum":self.listQuery.page,
+        "pageSize":self.listQuery.limit,
+            "value":"name",
+            "name":self.query.name
+        })
+        .then(function(res){
+          self.list = res.data.records
+          self.total = res.data.total
+            for(var i=0;i<self.list.length;i++){
+                if(self.list[i].useful == 1)
+                    self.list[i].useful = true
+                else
+                    self.list[i].useful =false
+                self.getPetUrl(self.list[i].id,i)
             }
-            if (self.list[i].avatar == null) {
-              self.list[i].avatar = "avatar/none.jpg";
-            }
-          }
-          self.reload();
+            self.reload()
+        }).catch(function(error){
+        })
+    },
+    //获取订单数据表
+    getOrders(){
+      let self = this
+        getAllOrders({
+          "pageNum":self.listQuery.page,
+        "pageSize":self.listQuery.limit,
+        })
+        .then(function(res){
+          self.list = res.data
+          self.total = res.data[0].mapNum
+          console.log(self.data)
+              for(var i=0;i<self.list.length;i++){
+                  if(self.list[i].useful == 1)
+                      self.list[i].useful = true
+                  else
+                      self.list[i].useful =false
+                  self.getPetUrl(self.list[i].id,i)
+              }
+            self.reload()
+        }).catch(function(error){
         })
         .catch(function (error) {});
-    },
-    // 修改用户启停状态
-    turnUseful(row) {
-      var flag;
-      if (row.useful == true) {
-        flag = 1;
-      } else {
-        flag = 0;
-      }
-      updateUserUseful({
-        id: row.id,
-        flag: flag,
-      })
-        .then(function (res) {})
-        .catch(function (error) {
-          console.log(error);
-        });
     },
     // 处理多选
     handleSelectionChange(val) {
@@ -387,7 +515,7 @@ export default {
           type: "warning",
         })
           .then(() => {
-            deleteUser({ ids: str })
+            deletePet({ ids: str })
               .then(function (res) {
                 self.reflash = true;
               })
@@ -415,13 +543,13 @@ export default {
     // 行内删除
     handleDelete(index, row) {
       const self = this;
-      this.$confirm("此操作将永久删除该用户, 是否继续?", "提示", {
+      this.$confirm("此操作将永久删除该数据, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       })
         .then(() => {
-          deleteUser({
+          deletePet({
             ids: row.id,
           })
             .then(function (res) {
@@ -444,6 +572,7 @@ export default {
     },
     // 处理新增
     handleCreate() {
+      console.log("create")
       this.dialogTitle = "create";
       this.dialogFormVisible = true;
       this.form = Object.assign({});
@@ -453,56 +582,162 @@ export default {
       this.dialogTitle = "Edit";
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row); // copy obj
-      this.form.password = "";
     },
     // 确认新增
-    createData() {
-      this.dialogFormVisible = false;
+    createData(){
       const self = this;
-      addUser(self.form)
-        .then(function (res) {
-          if (res.statusCode == 200) {
-            self.reflash = true;
-            self.$message({
-              type: "info",
-              message: "添加成功",
-            });
-          } else {
-            self.$message({
-              type: "info",
-              message: "添加失败,表单填写不完整",
-            });
-          }
-        })
-        .catch(function (error) {});
+      this.dialogFormVisible = false;
+      if(this.loadNum != 0)
+          this.submitUpload()
+      else{
+        addPet(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) 
+                {
+                  console.log(res)
+                  self.reflash = true;
+                  self.$message({
+                    type: "info",
+                    message: "添加成功",
+                  });
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "添加失败,表单填写不完整",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
     },
     // 确认修改
     updateData() {
+      const self = this;
       this.dialogFormVisible = false;
       if (this.form.useful == true) {
         this.form.useful = 1;
       } else {
         this.form.useful = 0;
       }
-      const self = this;
-      updateUser(self.form)
-        .then(function (res) {
-          if (res.statusCode == 200) {
-            self.reflash = true;
-            self.$message({
-              type: "info",
-              message: "修改成功",
-            });
-          } else {
-            self.$message({
-              type: "info",
-              message: "更改失败,未修改数据",
-            });
-          }
-        })
-        .catch(function (error) {});
+      if(this.loadNum != 0)
+        this.submitUpload()
+      else{
+        updatePet(self.form)
+              .then(function (res) {
+                if (res.statusCode == 200) {
+                  self.reflash = true;
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "修改成功",
+                  });
+                } else {
+                  self.$refs.upload.clearFiles();
+                  self.loadNum = 0
+                  self.$message({
+                    type: "info",
+                    message: "更改失败,未修改数据",
+                  });
+                }
+              })
+              .catch(function (error) {});
+      }
+
     },
-    get() {},
+    uploadFile(file) {
+	        this.formData.append('file', file.file);
+	  },
+    submitUpload() {
+      const self = this
+        console.log("upload")
+	        this.formData = new FormData()
+          this.$refs.upload.submit();
+          uploadPet(this.formData).then(response => {
+              console.log(response)
+              var pList = response.data
+              if(self.dialogTitle == 'create')
+              {
+                addPet(self.form)
+                .then(function (res) {
+                  console.log()
+                  if (res.statusCode == 200) 
+                  {
+                    getPetList({
+                      "value":"name",
+                      "name":self.form.name
+                    }).then(res => {
+                      self.addPetId = res.data[0].id
+                      for(var k = 0;k<pList.length;k++){
+                          addPicture({
+                            "belongId":res.data[0].id,
+                            "url":"pet/"+pList[k],
+                            "state":k
+                          }).then(res => {
+                          }).catch(err => {})
+                          self.$message({
+                            type: "info",
+                            message: "添加成功",
+                          });
+                      }
+                    }).catch(err => {})
+                    self.reflash = true;
+                    self.$refs.upload.clearFiles();
+                  } else {
+                    self.$refs.upload.clearFiles();
+                    self.$message({
+                      type: "info",
+                      message: "添加失败,表单填写不完整",
+                    });
+                  }
+                })
+                .catch(function (error) {});
+              }else if(self.dialogTitle == 'edit'){
+                updatePet(self.form)
+                .then(function (res) {
+                  if (res.statusCode == 200) {
+                    self.reflash = true;
+                    self.$refs.upload.clearFiles();
+                    self.$message({
+                      type: "info",
+                      message: "修改成功",
+                    });
+                  } else {
+                    self.$refs.upload.clearFiles();
+                    self.$message({
+                      type: "info",
+                      message: "更改失败,未修改数据",
+                    });
+                  }
+                })
+                .catch(function (error) {});
+              }
+          }).catch(err => {
+              console.log(err)
+          })
+	      	this.$refs.upload.clearFiles();
+	  },
+    handleRemove(file, fileList) {
+      console.log(file, fileList);
+    },
+    handlePreview(file) {
+      console.log(file);
+    },
+    handleExceed(files, fileList) {
+      console.log(files)
+      this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length } 个文件`);
+    },
+    handleChange(){
+        this.loadNum++
+    },
+    //其他
+    get() {
+      console.log(this.listQuery)
+    },
     fetchData() {
       this.listLoading = true;
       getList().then((response) => {

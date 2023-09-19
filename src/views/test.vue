@@ -50,7 +50,7 @@ import { Avatar } from 'element-ui';
         let self = this
         getAllOrders({
           "pageNum":1,
-        "pageSize":10,
+        "pageSize":30,
         }).then(res =>{
           console.log(res)
         }).catch(err => {
