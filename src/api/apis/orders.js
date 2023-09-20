@@ -47,14 +47,21 @@ export function getOneOrders(params) {
 
 // 获得全部订单接口
 export function getAllOrders(params) {
-<<<<<<< HEAD
     return post("/orders/getAllOrders_back", params);
-=======
-    return post("/orders/getAllOrders", params);
-}
 
+}
+// 获得全部订单接口byState
+export function getOrdersByState(params) {
+    return post("/orders/getAllOrders_backByState", params);
+
+}
+// 获得全部订单接口byID
+export function getOrdersById(params) {
+    return post("/orders/getAllOrders_backById", params);
+
+}
 //获得订单状态集
 export function getOrdersState(params) {
     return post("/orders/getOrdersState", params);
->>>>>>> 3f876a007f74deb7e721ddf57df67c779541ef0c
+
 }

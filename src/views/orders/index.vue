@@ -61,7 +61,7 @@
     </el-dialog>
     
     <div class="handle-box">
-      <el-select v-model="curshop" placeholder="请选择">
+      <el-select v-model="curState" placeholder="请选择">
             <el-option
             v-for="item in stateOptions"
             :key="item.value"
@@ -69,20 +69,20 @@
             :value="item.value">
             </el-option>
         </el-select>
-        <el-input v-model="query.name" placeholder="订单号" class="handle-input mr10"></el-input>
+        <!-- <el-input v-model="query.name" placeholder="订单号" class="handle-input mr10"></el-input>
         <el-button type="primary" icon="el-icon-search" @click="search()">搜索</el-button>
         <el-button
             type="danger"
             icon="el-icon-delete"
             class="handle-del"
             @click="delAllSelection"
-        >批量删除</el-button>
-        <el-button
+        >批量删除</el-button> -->
+        <!-- <el-button
             type="warning"
             icon="el-icon-refresh-right"
             class="handle-del mr10"
             @click="$router.go(0)"
-        >重置</el-button>
+        >重置</el-button> -->
     </div>
     <el-table
       v-loading="listLoading"
@@ -122,7 +122,7 @@
     </el-table-column>
     <el-table-column
       label="订单号"
-      prop="id"
+      prop="ordersId"
       width="300" align="center">
     </el-table-column>
     <el-table-column
@@ -137,104 +137,39 @@
         <span>{{ props.row.goodsPrice * props.row.goodsQuantity  }}</span>
         </template>
     </el-table-column>
-    <el-table-column
-      label="状态"
-      prop="state"
-      >
+    <el-table-column label="状态">
+      <template slot-scope="props">
+        <span>{{ getLabelByValue(props.row.state)}}</span>
+      </template>
     </el-table-column>
      <el-table-column
      width="180px"
       label="生成时间"
       prop="creatTime">
     </el-table-column>
-    <el-table-column label="操作" width="130px" align="center" fixed="right">
+    <el-table-column
+     width="180px"
+      label="订单备注"
+      prop="reason">
+    </el-table-column>
+    <el-table-column label="操作" width="240px" align="center" fixed="right">
         <template slot-scope="scope">
           <el-button
             type="primary"
             icon="el-icon-edit"
             size="mini"
-            @click="handleEdit(scope.row)"
-          />
+            :disabled="scope.row.state != 1"
+            @click="updataOrders(scope.row.ordersId,2)"
+          >发货</el-button>
           <el-button
             type="danger"
             icon="el-icon-delete"
             size="mini"
-            @click="handleDelete(scope.$index, scope.row)"
-          />
+            :disabled="scope.row.state != -2"
+            @click="updataOrders(scope.row.ordersId,-3)"
+          >确认退货</el-button>
         </template>
       </el-table-column> 
-      <!-- <el-table-column type="selection" width="45" align="center" />
-      <el-table-column align="center" label="序号" width="55">
-        <template slot-scope="scope">
-          {{ scope.$index }}
-        </template>
-      </el-table-column>
-      <el-table-column label="姓名" width="100" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.name }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="昵称" width="100" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.nickname }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="头像" align="center">
-        <template slot-scope="scope">
-          <el-image
-            class="table-td-thumb"
-            :src="`${PIC.pictureurl}${scope.row.avatar}`"
-            :preview-src-list="[`${PIC.pictureurl}${scope.row.avatar}`]"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column label="联系电话" width="110" align="center">
-        <template slot-scope="scope">
-          {{ scope.row.tele }}
-        </template>
-      </el-table-column>
-      <el-table-column label="邮箱" width="180" align="center">
-        <template slot-scope="scope">
-          {{ scope.row.email }}
-        </template>
-      </el-table-column>
-      <el-table-column label="性别" width="60" align="center">
-        <template slot-scope="scope">
-          <p v-if="scope.row.sex == '0'">男</p>
-          <p v-else>女</p>
-        </template>
-      </el-table-column>
-      <el-table-column
-        class-name="status-col"
-        label="useful"
-        width="110"
-        align="center"
-      >
-        <template slot-scope="scope">
-          <el-switch
-            v-model="scope.row.useful"
-            active-color="#13ce66"
-            inactive-color="#ff4949"
-            @change="turnUseful(scope.row)"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="130px" align="center" fixed="right">
-        <template slot-scope="scope">
-          <el-button
-            type="primary"
-            icon="el-icon-edit"
-            size="mini"
-            @click="handleEdit(scope.row)"
-          />
-          <el-button
-            type="danger"
-            icon="el-icon-delete"
-            size="mini"
-            @click="handleDelete(scope.$index, scope.row)"
-          />
-        </template>
-      </el-table-column> -->
     </el-table>
     <div class="page">
       <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"  />
@@ -247,7 +182,7 @@ import { getList } from "@/api/table";
 import Pagination from '@/components/Pagination/index.vue'
 import { getShopList } from "@/api/apis/shop";
 import { getPictureList,addPicture,uploadPet} from "@/api/apis/picUrl";
-import { getAllOrders } from "@/api/apis/orders";
+import { getAllOrders,getOrdersById,getOrdersByState,updateOrder } from "@/api/apis/orders";
 import {
   getPetList,
   getPetPage,
@@ -260,9 +195,6 @@ import { mapGetters } from 'vuex'
 import { smart } from "@babel/template";
 export default {
   computed: {
-        ...mapGetters([
-            'curShop'
-        ]),
     },
   components: {
       Pagination,
@@ -280,7 +212,7 @@ export default {
   },
   data() {
     return {
-      curshop:"0",
+      curState:"10",
       options: [{
           value: '公',
           label: '公'
@@ -339,59 +271,82 @@ export default {
           type: undefined,
           sort: '+id'
         },
-        stateOptions: [{
+        stateOptions: [
+        {
+          value: '10',
+          label: '全部'
+        },{
           value: '0',
           label: '待支付'
         }, {
           value: '1',
           label: '待发货'
         }, {
+          value: '2',
+          label: '待收货'
+        },  {
+          value: '3',
+          label: '待评价'
+        }, 
+        {
+          value: '4',
+          label: '已完成'
+        }, {
           value: '-1',
           label: '已取消'
         }, {
           value: '-2',
-          label: '已退化'
-        }, ],
+          label: '待退货'
+        },{
+          value: '-3',
+          label: '已退货'
+        }],
     };
   },
   watch: {
     //监测是否刷新
     reflash: function (newData, oldData) {
       const self = this;
-      getAllOrders({
+      if(this.curState == 10){
+        getAllOrders({
         "pageNum":self.listQuery.page,
         "pageSize":self.listQuery.limit,
       })
         .then(function (res) {
           self.list = res.data
           self.total = res.data.total
-          for (var i = 0; i < self.list.length; i++) {
-            if (self.list[i].useful == 1) {
-              self.list[i].useful = true;
-            } else {
-              self.list[i].useful = false;
-            }
-            self.getPetUrl(self.list[i].id,i)
-          }
           self.reload();
           self.reflash = false;
         })
         .catch(function (error) {});
+      }else{
+        getOrdersByState({
+          "pageNum":self.listQuery.page,
+        "pageSize":self.listQuery.limit,
+        "state":self.curState
+        })
+        .then(function(res){
+          self.list = res.data
+          self.total = res.data[0].mapNum
+          self.reflash = false;
+            self.reload()
+        }).catch(function(error){
+        })
+        .catch(function (error) {});
+
+      }
+      
     },
     addNum: function (newData, oldData) {
       if(this.addNum == this.list.length)
         this.loadComplete = true
     },
-    curshop: function (newData, oldData) {
-      console.log(this.curshop)
-        if(this.curshop == "0")
-            this.getPetForm.name = ""
-        else
-            this.getPetForm.name = this.curshop
-            
-        this.loadComplete = false
-        this.addNum = 0
-        this.reflash = true
+    curState: function (newData, oldData) {
+      console.log(this.curState)
+      if(this.curState == 10)
+        this.getOrders()
+      else
+        this.getOrdersItmeByState()
         },
     listQuery: {
       handler () { //这是vue的规定写法，当你watch的值发生变化的时候，就会触发这个handler，这是vue内部帮你做的事情
@@ -409,6 +364,10 @@ export default {
     this.getShop()
   },
   methods: {
+    getLabelByValue(value) {
+      const option = this.stateOptions.find(option => option.value == value);
+      return option ? option.label : '';
+    },
     //获取图片
     getPetUrl(id,pos){
       let self = this
@@ -452,23 +411,14 @@ export default {
     //宠物名搜索
     search(){
       let self = this
-      getPetPage({
+      getOrdersById({
         "pageNum":self.listQuery.page,
         "pageSize":self.listQuery.limit,
-            "value":"name",
-            "name":self.query.name
+        "name":self.query.name
         })
         .then(function(res){
           self.list = res.data.records
           self.total = res.data.total
-            for(var i=0;i<self.list.length;i++){
-                if(self.list[i].useful == 1)
-                    self.list[i].useful = true
-                else
-                    self.list[i].useful =false
-                self.getPetUrl(self.list[i].id,i)
-            }
-            self.reload()
         }).catch(function(error){
         })
     },
@@ -482,14 +432,36 @@ export default {
         .then(function(res){
           self.list = res.data
           self.total = res.data[0].mapNum
-          console.log(self.data)
-              for(var i=0;i<self.list.length;i++){
-                  if(self.list[i].useful == 1)
-                      self.list[i].useful = true
-                  else
-                      self.list[i].useful =false
-                  self.getPetUrl(self.list[i].id,i)
-              }
+            self.reload()
+        }).catch(function(error){
+        })
+        .catch(function (error) {});
+    },
+    getOrdersItmeByState(){
+      let self = this
+        getOrdersByState({
+          "pageNum":self.listQuery.page,
+        "pageSize":self.listQuery.limit,
+        "state":self.curState
+        })
+        .then(function(res){
+          self.list = res.data
+          self.total = res.data[0].mapNum
+            self.reload()
+        }).catch(function(error){
+        })
+        .catch(function (error) {});
+    },
+    getOrdersItemById(){
+      let self = this
+        getOrdersById({
+          "pageNum":self.listQuery.page,
+        "pageSize":self.listQuery.limit,
+        "ordersId":self.query.name
+        })
+        .then(function(res){
+          self.list = res.data
+          self.total = res.data[0].mapNum
             self.reload()
         }).catch(function(error){
         })
@@ -539,6 +511,24 @@ export default {
           message: "未选中数据",
         });
       }
+    },
+    updataOrders(id,state){
+      let self = this
+      updateOrder({
+        "id":id,
+        "state":state
+      }).then(res =>{
+        self.reflash = true;
+        self.$message({
+          message: '操作成功',
+          type: 'success'
+        });
+      }).catch(err =>{
+        this.$message({
+          message: '操作失败',
+          type: 'warning'
+        });
+      })
     },
     // 行内删除
     handleDelete(index, row) {
