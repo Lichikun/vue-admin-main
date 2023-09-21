@@ -134,6 +134,17 @@
         </div>
       </el-row>
       <el-row :gutter="20" style="margin-top: 20px">
+        <div class="out-border">
+          <div class="layout-title">订单销量分布</div>
+          <div style="padding: 40px">
+            <div
+              id="ordersSaleChart"
+              :style="{ width: '100%', height: '300px' }"
+            ></div>
+          </div>
+        </div>
+      </el-row>
+      <el-row :gutter="20" style="margin-top: 20px">
         <el-col :span="12">
           <div class="out-border">
             <div class="layout-title">商品种类分布</div>
@@ -266,6 +277,7 @@ export default {
       .then(function (res) {
         self.getGoodsTypeNum = res.data;
         self.drawGoodsTypeNum(self.getGoodsTypeNum);
+        self.drawOrdersSale();
         //console.log(" self.petsPricePhase:", self.petsPricePhase);
       })
       .catch(function (error) {});
@@ -361,6 +373,39 @@ export default {
           {
             type: "bar",
             data: PetsNum,
+          },
+        ],
+      });
+    },
+    drawOrdersSale() {
+      // 基于准备好的dom，初始化echarts实例
+      // 全局使用 echarts 初始化（this.$echarts）
+      let ordersSaleChart = this.$echarts.init(
+        document.getElementById("ordersSaleChart")
+      );
+
+      ordersSaleChart.setOption({
+        title: {
+          text: "",
+        },
+        tooltip: {},
+        xAxis: {
+          type: "category",
+          data: [
+            "2023-6-18",
+            "2023-6-19",
+            "2023-6-20",
+            "2023-9-11",
+            "2023-9-20",
+          ],
+        },
+        yAxis: {
+          type: "value",
+        },
+        series: [
+          {
+            data: [1787, 278, 1250, 4095, 65],
+            type: "line",
           },
         ],
       });
