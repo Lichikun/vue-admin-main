@@ -8,54 +8,24 @@
       :title="dialogTitle"
       width="500px"
     >
-      <el-form ref="form" :model="form" size="small" label-width="80px">
-        <el-form-item
-          label="商品名称"
-          :disabled="true"
-          prop="itemName"
-        ><el-input v-model="form.name" style="width: 370px" :disabled="true"/>
-        </el-form-item>
-        <el-form-item label="类型" prop="itemType" >
-          <el-input v-model="form.type" style="width: 370px" :disabled="true"/>
-        </el-form-item>
-        <el-form-item label="价格" prop="price" >
-          <el-input v-model="form.price"  style="width: 370px" :disabled="true"/>
-        </el-form-item>
-        
-      
-        <el-form-item label="所属商店">
-          <el-select v-model="form.shopId" placeholder="请选择">
-            <el-option
-              v-for="item in shopMsg"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="性别" >
-          <el-select v-model="form.sex" placeholder="请选择">
-            <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="年龄">
-          <el-input v-model="form.age" style="width: 370px" />
-        </el-form-item>
-      </el-form>
+      <div>
+        <span>退货理由：</span>
+        <input type="text" v-model="form.reason" style="width: 300px;">
+      </div>
       <div slot="footer" class="dialog-footer">
         <el-button type="text" @click="dialogFormVisible = false"
           >取消</el-button
         >
         <el-button
           type="primary"
-          @click="dialogTitle === 'create' ? createData() : updateData()"
-          >确认</el-button
+          @click="updataOrders(form,-3)"
+          >确认退货</el-button
+        >
+        <el-button
+          type="danger"
+          v-if="form.state == -2"
+          @click="updataOrders(form,2)"
+          >拒绝退货</el-button
         >
       </div>
     </el-dialog>
@@ -159,15 +129,15 @@
             icon="el-icon-edit"
             size="mini"
             :disabled="scope.row.state != 1"
-            @click="updataOrders(scope.row.ordersId,2)"
+            @click="updataOrders(form,2)"
           >发货</el-button>
           <el-button
             type="danger"
             icon="el-icon-delete"
             size="mini"
-            :disabled="scope.row.state != -2"
-            @click="updataOrders(scope.row.ordersId,-3)"
-          >确认退货</el-button>
+            :disabled="checkState(scope.row)"
+            @click="handleEdit(scope.row)"
+          >审核退货</el-button>
         </template>
       </el-table-column> 
     </el-table>
@@ -243,17 +213,11 @@ export default {
         value: "shop_id",
         name: "",
       },
+      reason:"",
       form: {
-        name: "",
-        urlList:[],
-        description:"",
-        type:"",
-        price:"",
-        shopId:"",
-        sex:"",
-        age:"",
-        useful:"",
-        avatar:""
+        id:"",
+        state:"",
+        reason:"",
       },
       query: {
         address: "",
@@ -364,6 +328,12 @@ export default {
     this.getShop()
   },
   methods: {
+    checkState(row){
+      if(row.state == 1 || row.state == 2 || row.state == -2)
+        return false
+      else
+        return true
+    },
     getLabelByValue(value) {
       const option = this.stateOptions.find(option => option.value == value);
       return option ? option.label : '';
@@ -512,22 +482,25 @@ export default {
         });
       }
     },
-    updataOrders(id,state){
+    updataOrders(form,state){
       let self = this
       updateOrder({
-        "id":id,
-        "state":state
+        "id":form.ordersId,
+        "state":state,
+        "reason":self.reason
       }).then(res =>{
         self.reflash = true;
         self.$message({
           message: '操作成功',
           type: 'success'
         });
+        self.dialogFormVisible = false;
       }).catch(err =>{
         this.$message({
           message: '操作失败',
           type: 'warning'
         });
+        self.dialogFormVisible = false;
       })
     },
     // 行内删除
@@ -569,7 +542,7 @@ export default {
     },
     // 处理修改
     handleEdit(row) {
-      this.dialogTitle = "Edit";
+      this.dialogTitle = "审核退货";
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row); // copy obj
     },
